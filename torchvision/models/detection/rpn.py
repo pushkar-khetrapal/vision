@@ -11,6 +11,8 @@ from .image_list import ImageList
 
 from torch.jit.annotations import List, Optional, Dict, Tuple
 
+from inplace_abn.abn import InPlaceABN
+
 
 @torch.jit.unused
 def _onnx_get_num_anchors_and_pre_nms_top_n(ob, orig_pre_nms_top_n):
@@ -195,6 +197,8 @@ class RPNHead(nn.Module):
             in_channels, num_anchors * 4, kernel_size=1, stride=1
         )
 
+        self.inABN = InPlaceABN(in_channels)
+
         for layer in self.children():
             torch.nn.init.normal_(layer.weight, std=0.01)
             torch.nn.init.constant_(layer.bias, 0)
@@ -204,7 +208,7 @@ class RPNHead(nn.Module):
         logits = []
         bbox_reg = []
         for feature in x:
-            t = F.relu(self.conv(feature))
+            t = self.inABN(self.conv(feature))
             logits.append(self.cls_logits(t))
             bbox_reg.append(self.bbox_pred(t))
         return logits, bbox_reg

@@ -238,26 +238,17 @@ class MaskRCNNHeads(nn.Sequential):
             next_feature = layer_features
 
         super(MaskRCNNHeads, self).__init__(d)
-        for name, param in self.named_parameters():
-            if "weight" in name:
-                nn.init.kaiming_normal_(param, mode="fan_out", nonlinearity="relu")
-            # elif "bias" in name:
-            #     nn.init.constant_(param, 0)
+
 
 
 class MaskRCNNPredictor(nn.Sequential):
     def __init__(self, in_channels, dim_reduced, num_classes):
         super(MaskRCNNPredictor, self).__init__(OrderedDict([
             ("conv5_mask", nn.ConvTranspose2d(in_channels, dim_reduced, 2, 2, 0)),
-            ("InPlaceABN", InPlaceABN(dim_reduced),
+            ("InPlaceABN", InPlaceABN(dim_reduced)),
             ("mask_fcn_logits", nn.Conv2d(dim_reduced, num_classes, 1, 1, 0)),
         ]))
 
-        for name, param in self.named_parameters():
-            if "weight" in name:
-                nn.init.kaiming_normal_(param, mode="fan_out", nonlinearity="relu")
-            # elif "bias" in name:
-            #     nn.init.constant_(param, 0)
 
 
 model_urls = {

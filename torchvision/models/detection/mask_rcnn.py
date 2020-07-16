@@ -12,6 +12,8 @@ from ..utils import load_state_dict_from_url
 from .faster_rcnn import FasterRCNN
 from .backbone_utils import resnet_fpn_backbone
 
+from inplace_abn.abn import InPlaceABN
+
 __all__ = [
     "MaskRCNN", "maskrcnn_resnet50_fpn",
 ]
@@ -232,7 +234,7 @@ class MaskRCNNHeads(nn.Sequential):
             d["mask_fcn{}".format(layer_idx)] = nn.Conv2d(
                 next_feature, layer_features, kernel_size=3,
                 stride=1, padding=dilation, dilation=dilation)
-            d["relu{}".format(layer_idx)] = nn.ReLU(inplace=True)
+            d["InPlaceABN{}".format(layer_idx)] = InPlaceABN(layer_features)
             next_feature = layer_features
 
         super(MaskRCNNHeads, self).__init__(d)
@@ -247,7 +249,7 @@ class MaskRCNNPredictor(nn.Sequential):
     def __init__(self, in_channels, dim_reduced, num_classes):
         super(MaskRCNNPredictor, self).__init__(OrderedDict([
             ("conv5_mask", nn.ConvTranspose2d(in_channels, dim_reduced, 2, 2, 0)),
-            ("relu", nn.ReLU(inplace=True)),
+            ("InPlaceABN", InPlaceABN(dim_reduced),
             ("mask_fcn_logits", nn.Conv2d(dim_reduced, num_classes, 1, 1, 0)),
         ]))
 

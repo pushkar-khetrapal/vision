@@ -15,6 +15,8 @@ from .roi_heads import RoIHeads
 from .transform import GeneralizedRCNNTransform
 from .backbone_utils import resnet_fpn_backbone
 
+from inplace_abn.abn import InPlaceABN
+
 
 __all__ = [
     "FasterRCNN", "fasterrcnn_resnet50_fpn",
@@ -247,12 +249,14 @@ class TwoMLPHead(nn.Module):
 
         self.fc6 = nn.Linear(in_channels, representation_size)
         self.fc7 = nn.Linear(representation_size, representation_size)
+        self.inABN1 = InPlaceABN(1024)
+        self.inABN2 = InPlaceABN(1024)
 
     def forward(self, x):
         x = x.flatten(start_dim=1)
 
-        x = F.relu(self.fc6(x))
-        x = F.relu(self.fc7(x))
+        x = self.inABN1(self.fc6(x))
+        x = self.inABN2(self.fc7(x))
 
         return x
 
